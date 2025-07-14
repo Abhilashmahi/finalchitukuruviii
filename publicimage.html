@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chitu Kuruvi Public Nest 🪺</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: url("image/publicback.jpg") no-repeat center center fixed;
+      background-size: cover;
+      position: relative;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: inherit;
+      filter: blur(8px);
+      z-index: -1;
+    }
+
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(270deg, #00c9ff, #92fe9d);
+      background-size: 400% 400%;
+      animation: gradientMove 8s ease infinite;
+      padding: 15px 20px;
+      color: #fff;
+      font-size: 20px;
+      font-weight: bold;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .nav-btn {
+      padding: 8px 16px;
+      font-size: 14px;
+      border: none;
+      border-radius: 8px;
+      background-color: #0077cc;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .nav-btn:hover {
+      background-color: #004c8a;
+    }
+
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    .profile-list, .folder-list, .images-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+    }
+
+    .profile-card, .folder-card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      padding: 15px;
+      border: 2px solid #aad4f5;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    .profile-card:hover, .folder-card:hover {
+      transform: scale(1.05);
+    }
+
+    .images-grid img {
+      width: 100%;
+      max-width: 180px;
+      border-radius: 10px;
+      border: 2px solid #ccc;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .images-grid img:hover {
+      transform: scale(1.07);
+    }
+
+    .back-btn {
+      margin-top: 20px;
+      font-weight: bold;
+      color: #0077cc;
+      cursor: pointer;
+      text-align: center;
+      width: 100%;
+    }
+
+    #imageModal {
+      position: fixed;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.75);
+      z-index: 999;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      padding: 10px;
+      max-width: 90%;
+      max-height: 90%;
+      animation: zoomIn 0.3s ease;
+    }
+
+    .modal-content img {
+      max-width: 100%;
+      max-height: 80vh;
+      border-radius: 10px;
+      display: block;
+      margin: auto;
+    }
+
+    @keyframes zoomIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .close-btn {
+      text-align: right;
+      font-size: 28px;
+      font-weight: bold;
+      color: red;
+      cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      .images-grid img {
+        max-width: 45%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .images-grid img {
+        max-width: 100%;
+      }
+
+      .navbar {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+      }
+
+      .nav-btn {
+        font-size: 13px;
+        padding: 6px 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    📸 Chitu Kuruvi Public Nest 🪺
+    <button class="nav-btn" onclick="window.location.href='nest.html'">🔙 Back to Login</button>
+  </div>
+
+  <div class="container">
+    <div class="profile-list" id="profileList"></div>
+    <div class="folder-list" id="folderList" style="display:none;"></div>
+    <div class="images-grid" id="userImages" style="display:none;"></div>
+    <div class="back-btn" id="backBtn" style="display:none;" onclick="goBack()">← Back</div>
+  </div>
+
+  <div id="imageModal" onclick="closeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="close-btn" onclick="closeModal()">×</div>
+      <img id="modalImage" src="" alt="Preview" />
+    </div>
+  </div>
+
+  <script>
+    let currentUser = null;
+
+    function loadProfiles() {
+      fetch('gallery.php')
+        .then(res => res.json())
+        .then(data => {
+          const list = document.getElementById('profileList');
+          list.innerHTML = '';
+          data.forEach(user => {
+            const card = document.createElement('div');
+            card.className = 'profile-card';
+            card.innerHTML = `
+              <h4>${user.name} 🐤</h4>
+              <p>📍 ${user.address}</p>
+              <p style="color:gray;">📷 ${user.images.length} images</p>
+            `;
+            card.onclick = () => showFolders(user);
+            list.appendChild(card);
+          });
+        });
+    }
+
+    function showFolders(user) {
+      currentUser = user;
+      document.getElementById('profileList').style.display = 'none';
+      document.getElementById('folderList').style.display = 'flex';
+      document.getElementById('userImages').style.display = 'none';
+      document.getElementById('backBtn').style.display = 'block';
+
+      const folderList = document.getElementById('folderList');
+      folderList.innerHTML = '';
+
+      const grouped = {};
+      user.images.forEach(img => {
+        const date = new Date(img.uploaded_at).toISOString().split('T')[0];
+        if (!grouped[date]) grouped[date] = [];
+        grouped[date].push(img);
+      });
+
+      const sortedDates = Object.keys(grouped).sort((a, b) => new Date(a) - new Date(b));
+      sortedDates.forEach((dateStr, i) => {
+        const folder = document.createElement('div');
+        folder.className = 'folder-card';
+        const displayDate = new Date(dateStr).toLocaleDateString('en-GB', {
+          day: 'numeric', month: 'long', year: 'numeric'
+        });
+        folder.innerHTML = `📁 ${displayDate} — Day #${i + 1}`;
+        folder.onclick = () => showImages(grouped[dateStr], displayDate, i + 1);
+        folderList.appendChild(folder);
+      });
+    }
+
+    function showImages(images, displayDate, dayNumber) {
+      document.getElementById('folderList').style.display = 'none';
+      const box = document.getElementById('userImages');
+      box.style.display = 'flex';
+      box.innerHTML = '';
+
+      images.forEach(img => {
+        const image = document.createElement('img');
+        image.src = 'uploads/' + img.filename;
+        image.title = `📅 ${displayDate} — Day #${dayNumber}`;
+        image.onclick = () => openModal(image.src);
+        box.appendChild(image);
+      });
+    }
+
+    function goBack() {
+      document.getElementById('profileList').style.display = 'flex';
+      document.getElementById('folderList').style.display = 'none';
+      document.getElementById('userImages').style.display = 'none';
+      document.getElementById('backBtn').style.display = 'none';
+    }
+
+    function openModal(src) {
+      document.getElementById('modalImage').src = src;
+      document.getElementById('imageModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('imageModal').style.display = 'none';
+      document.getElementById('modalImage').src = '';
+    }
+
+    loadProfiles();
+  </script>
+</body>
+</html>

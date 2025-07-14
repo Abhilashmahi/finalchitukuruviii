@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chitu Kuruvi Nest 🪺</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: url("image/h2.webp") no-repeat center center fixed;
+      background-size: cover;
+      margin: 0;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      backdrop-filter: blur(6px);
+      background-color: rgba(255, 255, 255, 0.2);
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      padding: 20px;
+    }
+
+    .login-box {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      max-width: 400px;
+      width: 90%;
+      text-align: left;
+    }
+
+    .logo-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .logo-row img {
+      width: 60px;
+      margin-right: 10px;
+    }
+
+    .logo-row h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    .password-wrap {
+      position: relative;
+    }
+
+    .password-wrap span {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 18px;
+      color: #555;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 10px;
+      border: none;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #388e3c;
+    }
+
+    .public-btn {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .public-btn button {
+      background-color: #2196F3;
+    }
+
+    .public-btn button:hover {
+      background-color: #1769aa;
+    }
+
+    .error-message {
+      color: red;
+      margin-top: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="login-box">
+      <div class="logo-row">
+        <img src="image/l.jpg" alt="Chitu Kuruvi Logo">
+        <h2>🐥 Chitu Kuruvi Nest Login</h2>
+      </div>
+
+      <input type="text" id="userId" placeholder="Enter User ID (e.g., CK1234)" />
+
+      <div class="password-wrap">
+        <input type="password" id="userPass" placeholder="Enter Password" />
+        <span onclick="togglePassword()">👁️</span>
+      </div>
+
+      <button onclick="loginUser()">Login</button>
+      <p id="loginError" class="error-message">Invalid credentials. Please try again.</p>
+
+      <div class="public-btn">
+        <button onclick="window.location.href='publicimage.html'"> Go to Public Gallery</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function togglePassword() {
+      const input = document.getElementById("userPass");
+      input.type = input.type === "password" ? "text" : "password";
+    }
+
+    function loginUser() {
+      const userId = document.getElementById('userId').value;
+      const password = document.getElementById('userPass').value;
+
+      fetch('login.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `userid=${encodeURIComponent(userId)}&password=${encodeURIComponent(password)}`
+      })
+      .then(res => res.text())
+      .then(data => {
+        if (data.trim() === 'success') {
+          window.location.href = `upload_page.html?userid=${encodeURIComponent(userId)}`;
+        } else {
+          document.getElementById('loginError').style.display = 'block';
+        }
+      });
+    }
+  </script>
+</body>
+</html>

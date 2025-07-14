@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Upload Image - Chitu Kuruvi Nest</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: url("image/h2.webp") no-repeat center center fixed;
+      background-size: cover;
+      margin: 0;
+      position: relative;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      backdrop-filter: blur(8px);
+      background-color: rgba(255, 255, 255, 0.2);
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 20px;
+    }
+
+    .upload-box, .folder-list, .image-view {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 25px;
+      border-radius: 18px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      max-width: 420px;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    h2, h3 {
+      text-align: center;
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .file-label {
+      display: inline-block;
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transition: transform 0.2s ease, background 0.3s ease;
+    }
+
+    .file-label:hover {
+      transform: scale(1.05);
+      background: linear-gradient(135deg, #0072ff, #00c6ff);
+    }
+
+    .upload-info {
+      margin-top: 15px;
+      text-align: center;
+      color: #4caf50;
+      font-weight: bold;
+      opacity: 0;
+      animation: fadeIn 1.5s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .folder {
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background-color: #f0f8ff;
+      cursor: pointer;
+      font-weight: bold;
+      text-align: center;
+      transition: background-color 0.2s ease;
+    }
+
+    .folder:hover {
+      background-color: #cceeff;
+    }
+
+    .image-preview {
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .image-preview img {
+      width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .remove-btn {
+      background-color: #f44336;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      margin-top: 10px;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .remove-btn:hover {
+      background-color: #d32f2f;
+    }
+
+    .back-btn {
+      margin-top: 20px;
+      color: white;
+      background-color: #2196F3;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    .back-btn:hover {
+      background-color: #0b7dda;
+    }
+
+    @media (max-width: 480px) {
+      .file-label {
+        width: 100%;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="upload-box">
+      <h2>📤 Upload Your Image</h2>
+      <form id="uploadForm" method="POST" enctype="multipart/form-data" action="upload.php">
+        <input type="hidden" name="userid" id="uploadUserId">
+        <label for="imageInput" class="file-label">📁 Choose Image</label>
+        <input type="file" name="image" id="imageInput" accept="image/*" required>
+        <div id="uploadInfo" class="upload-info" style="display: none;">📸 Your image will be uploaded...</div>
+      </form>
+    </div>
+
+    <div class="folder-list" id="folderList">
+      <h3>📁 Your Upload Folders</h3>
+    </div>
+
+    <div class="image-view" id="imageView" style="display:none;">
+      <h3 id="folderTitle"></h3>
+      <div id="imageContainer"></div>
+      <div class="back-btn" onclick="showFolders()">← Back to Folders</div>
+    </div>
+
+    <a class="back-btn" href="nest.html">🔙 Back to Login</a>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const userId = params.get('userid');
+    document.getElementById('uploadUserId').value = userId;
+
+    // Upload when image selected
+    document.getElementById('imageInput').addEventListener('change', function () {
+      if (this.files.length > 0) {
+        document.getElementById('uploadInfo').style.display = 'block';
+        setTimeout(() => {
+          document.getElementById('uploadForm').submit();
+        }, 1000); // slight delay for animation
+      }
+    });
+
+    function formatDateTitle(dateStr) {
+      const date = new Date(dateStr);
+      const options = { day: 'numeric', month: 'long', year: 'numeric' };
+      return date.toLocaleDateString('en-GB', options);
+    }
+
+    function showFolders() {
+      document.getElementById('imageView').style.display = 'none';
+      document.getElementById('folderList').style.display = 'block';
+    }
+
+    function showImages(dateKey, images, dayCount) {
+      document.getElementById('folderList').style.display = 'none';
+      document.getElementById('imageView').style.display = 'block';
+      document.getElementById('folderTitle').innerText = `📅 ${formatDateTitle(dateKey)} — Day #${dayCount}`;
+
+      const imageBox = document.getElementById('imageContainer');
+      imageBox.innerHTML = '';
+
+      images.forEach(data => {
+        const div = document.createElement('div');
+        div.className = 'image-preview';
+        div.innerHTML = `
+          <img src="uploads/${data.filename}" alt="Uploaded Image">
+          <form method="POST" action="delete_image.php" onsubmit="return confirm('Are you sure you want to delete this image?');">
+            <input type="hidden" name="userid" value="${userId}">
+            <input type="hidden" name="filename" value="${data.filename}">
+            <button type="submit" class="remove-btn">❌ Remove</button>
+          </form>
+        `;
+        imageBox.appendChild(div);
+      });
+    }
+
+    fetch(`all_images.php?userid=${encodeURIComponent(userId)}`)
+      .then(res => res.json())
+      .then(images => {
+        if (images.length === 0) {
+          document.getElementById('folderList').innerHTML += '<p style="text-align:center;">No uploads found.</p>';
+          return;
+        }
+
+        const grouped = {};
+        images.forEach(img => {
+          const date = new Date(img.uploaded_at).toISOString().split('T')[0];
+          if (!grouped[date]) grouped[date] = [];
+          grouped[date].push(img);
+        });
+
+        const folderBox = document.getElementById('folderList');
+        const dates = Object.keys(grouped).sort((a,b) => new Date(a) - new Date(b));
+
+        dates.forEach((date, i) => {
+          const folder = document.createElement('div');
+          folder.className = 'folder';
+          folder.innerText = `📁 ${formatDateTitle(date)} — Day #${i+1}`;
+          folder.onclick = () => showImages(date, grouped[date], i+1);
+          folderBox.appendChild(folder);
+        });
+      });
+  </script>
+</body>
+</html>
